@@ -1,13 +1,23 @@
-import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import SGD
+import numpy as np
 
-node1 = tf.constant(3.0, dtype=tf.float32)
-node2 = tf.constant(4.0) # also tf.float32 implicitly
-node3 = tf.add(node1, node2)
-sess = tf.Session()
-a = tf.placeholder(tf.float32)
-b = tf.placeholder(tf.float32)
-adder_node = a + b
+model = Sequential()
+model.add(Dense(8, input_dim=2, activation='tanh'))
+model.add(Dense(1, activation='sigmoid'))
+#model.add(Dense(81, activation='relu'))
+#model.add(Dense(9, activation='relu'))
+sgd = SGD(lr=0.1)
+model.compile(optimizer=SGD(lr=0.1), loss='mean_squared_error')
+inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+outputs = np.array([[0], [1], [1], [0]])
 
-print("Here")
-print(sess.run(node3))
-print(sess.run(adder_node, {a: [3, 1], b: 4.5}))
+model.fit(x=inputs, y=outputs, epochs=1000)
+print(model.predict(inputs, batch_size=1, verbose=1))
+#board = np.zeros((1, 9))
+#board[0][0] = 1
+#print(model.predict(board, batch_size=1, verbose=1))
+#model.save_weights('test_weights.h5')
+
+
