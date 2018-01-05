@@ -1,15 +1,18 @@
 from Board import GameBoard, look_ahead, convert_to_position
 import numpy as np
-
+import NeuralNet as net
 
 dict2list = lambda _dict: [x for x in _dict.values()]
 rem_invalid = lambda _list: list(filter(lambda x: x != -np.inf, _list))
 
 
 class Agent:
-    def __init__(self, number, is_human):
+    def __init__(self, number, is_human, prediction_type=None):
         self.number = number
         self.is_human = is_human
+        self.prediction_type = prediction_type
+        if self.prediction_type == "q_learning":
+            self.nn = net.NeuralNet([[81, 'relu'], [81, 'relu'], [9, 'relu']], 81)
 
     def move(self, board):
         value = {}
@@ -24,17 +27,17 @@ class Agent:
                 pos = convert_to_position(int(input("That is not a valid move! Please try again: ")),
                                           board.rows,
                                           board.cols)
-            #print(pos)
             board.played_pos.append(pos)
             return pos
 
         else:
-            possible_moves = get_best_action(get_value_of_board_recursion([[[[board, (0, 0)]]]],
-                                                                          self.number,
-                                                                          value,
-                                                                          1,
-                                                                          3))
-            #print(possible_moves)
+            if self.prediction_type == "minimax":
+                board_val = get_value_of_board_recursion([[[[board, (0, 0)]]]], self.number, value, 1, 3)
+            elif self.prediction_type == "q_learning":
+                board_val = self.nn.get_value_of_board_q_learning(board)
+            else:
+                raise Exception("Invalid prediction type %s" % self.prediction_type)
+            possible_moves = get_best_action(board_val)
             if len(possible_moves) > 1:
                 pos = possible_moves[np.random.choice(len(possible_moves))]
                 while not board.check_if_valid(pos):
@@ -84,7 +87,6 @@ def get_value_of_board_recursion(future_boards, current_player, value, recursion
             elif winner == 1 if current_player == 2 else 2:
                 value[each[1]] -= 10
     if max_lookahead == recursion:
-        #future_boards[0][0][0][0].show_board()
         for pos in future_boards[0][0][0][0].played_pos:
             pos = tuple(pos)
             value[pos] = -np.inf

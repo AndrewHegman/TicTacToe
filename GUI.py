@@ -281,7 +281,7 @@ class GUI:
 if __name__ == '__main__':
     board = GameBoard()
     player1 = Agent(1, True)
-    player2 = Agent(2, False)
+    player2 = Agent(2, False, 'q_learning')
     game_gui = GUI(1280, 900, 6, 7, board, player1, player2)
     game_gui.create_board()
 
@@ -294,14 +294,12 @@ if __name__ == '__main__':
                 if game_gui.playing_game: game_gui.clicked = True
                 game_gui.playing_game = True
 
-
         if game_gui.playing_game:
             game_gui.set_title_text("Player %d\'s turn" % game_gui.current_player.number)
             game_gui.play_piece()
             player_won = game_gui.game_board.check_for_win()
             if player_won > 0:
                 game_gui.set_title_text("Player %d wins!!" % player_won)
-                #break
             elif player_won < 0:
                 game_gui.set_title_text("Tie game!!")
 

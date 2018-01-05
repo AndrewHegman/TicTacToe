@@ -70,6 +70,4 @@ def look_ahead(board, player_turn):
             if tmp_board.check_if_valid((c, r)):
                 tmp_board.board[c][r] = player_turn
                 future_boards.append((copy.copy(tmp_board), (c, r)))
-    #print(future_boards)
-    #input()
     return future_boards
