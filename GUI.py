@@ -58,6 +58,7 @@ class GUI:
         self.title_text = None
         self.set_title_text("Player 0 wins!!")
         self.clicked = False
+        self.playing_game = False
 
     def create_board(self):
         self.grid_bars = self.create_grid()
@@ -198,18 +199,34 @@ class GUI:
             )
         return x
 
-    def check_if_mouse_is_hovering(self):
+    def check_if_mouse_is_hovering_collision_square(self):
         mouse = pygame.mouse.get_pos()
         for square in range(len(self.collision_squares)):
             if self.collision_squares[square].collidepoint(mouse):
                 return square
         return None
 
+    def check_if_mouse_is_hovering_game_menu(self):
+        mouse = pygame.mouse.get_pos()
+        for square in range(len(self.collision_squares)):
+            if self.collision_squares[square].collidepoint(mouse):
+                return square
+        return None
+
+    def display_start_menu(self):
+        title_line1 = pygame.font.SysFont(None, 46).render("Welcome to", True, white)
+        title_line2 = pygame.font.SysFont(None, 200).render("Tic-Tac-Toe", True, white)
+        self.screen.blit(title_line1, (self.screen.get_rect().center[0] - title_line2.get_width() // 2,
+                                       10))
+        self.screen.blit(title_line2, (self.screen.get_rect().center[0] - title_line2.get_width() // 2,
+                              10 + title_line1.get_height()))
+        pygame.display.flip()
+
     def play_piece(self):
         if self.current_player.is_human:
             if self.clicked:
                 self.clicked = False
-                active_square = self.check_if_mouse_is_hovering()
+                active_square = self.check_if_mouse_is_hovering_collision_square()
                 if active_square is not None and self.game_board.check_if_valid(active_square):
                     pos = (convert_to_position(active_square, self.game_board.rows, self.game_board.cols)[0],
                            convert_to_position(active_square, self.game_board.rows, self.game_board.cols)[1])
@@ -230,35 +247,34 @@ class GUI:
     def update(self):
         self.screen.fill(black)
 
-        for bar in self.grid_bars.values():
-            pygame.draw.rect(self.screen, white, bar)
+        if self.playing_game:
+            for bar in self.grid_bars.values():
+                pygame.draw.rect(self.screen, white, bar)
 
-        for square in range(len(self.collision_squares)):
-            pos = (convert_to_position(square, self.game_board.rows, self.game_board.cols)[0],
-                   convert_to_position(square, self.game_board.rows, self.game_board.cols)[1])
+            for square in range(len(self.collision_squares)):
+                pos = (convert_to_position(square, self.game_board.rows, self.game_board.cols)[0],
+                       convert_to_position(square, self.game_board.rows, self.game_board.cols)[1])
 
-            if self.game_board.board[pos] == 1:
-                pygame.draw.polygon(self.screen, white, self.player_markers[0][square])
-            if self.game_board.board[pos] == 2:
-                pygame.draw.circle(self.screen, white, self.collision_squares[square].center, self.o_radius,
-                                   self.marker_width)
+                if self.game_board.board[pos] == 1:
+                    pygame.draw.polygon(self.screen, white, self.player_markers[0][square])
+                if self.game_board.board[pos] == 2:
+                    pygame.draw.circle(self.screen, white, self.collision_squares[square].center, self.o_radius,
+                                       self.marker_width)
 
-        active_square = self.check_if_mouse_is_hovering()
-        if active_square is not None and self.game_board.check_if_valid(active_square):
-            if self.current_player.number == 1:
-                pygame.draw.polygon(self.screen, white, self.player_markers[self.current_player.number-1][active_square])
-            elif self.current_player.number == 2:
-                pygame.draw.circle(self.screen, white, self.collision_squares[active_square].center, self.o_radius,
-                                   self.marker_width)
+            active_square = self.check_if_mouse_is_hovering_collision_square()
+            if active_square is not None and self.game_board.check_if_valid(active_square):
+                if self.current_player.number == 1:
+                    pygame.draw.polygon(self.screen, white, self.player_markers[self.current_player.number-1][active_square])
+                elif self.current_player.number == 2:
+                    pygame.draw.circle(self.screen, white, self.collision_squares[active_square].center, self.o_radius,
+                                       self.marker_width)
 
-        self.screen.blit(self.title_text,
-                         (self.screen.get_rect().center[0] - self.title_text.get_width() // 2,
-                          10))
-        player_won = self.game_board.check_for_win()
-
+            self.screen.blit(self.title_text,
+                             (self.screen.get_rect().center[0] - self.title_text.get_width() // 2,
+                              10))
+            player_won = self.game_board.check_for_win()
 
         pygame.display.flip()
-        #return False
 
 
 
@@ -268,22 +284,30 @@ if __name__ == '__main__':
     player2 = Agent(2, False)
     game_gui = GUI(1280, 900, 6, 7, board, player1, player2)
     game_gui.create_board()
+
     while game_gui.game_running:
-        game_gui.set_title_text("Player %d\'s turn" % game_gui.current_player.number)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # this enables clicking the X in the program bar to kill program.
                 game_gui.game_running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and game_gui.current_player.is_human:
-                game_gui.clicked = True
+                if game_gui.playing_game: game_gui.clicked = True
+                game_gui.playing_game = True
 
-        game_gui.play_piece()
-        player_won = game_gui.game_board.check_for_win()
-        if player_won > 0:
-            game_gui.set_title_text("Player %d wins!!" % player_won)
-            #break
-        elif player_won < 0:
-            game_gui.set_title_text("Tie game!!")
-        game_gui.update()
+
+        if game_gui.playing_game:
+            game_gui.set_title_text("Player %d\'s turn" % game_gui.current_player.number)
+            game_gui.play_piece()
+            player_won = game_gui.game_board.check_for_win()
+            if player_won > 0:
+                game_gui.set_title_text("Player %d wins!!" % player_won)
+                #break
+            elif player_won < 0:
+                game_gui.set_title_text("Tie game!!")
+
+            game_gui.update()
+
+        else:
+            game_gui.display_start_menu()
 
     pygame.quit()
