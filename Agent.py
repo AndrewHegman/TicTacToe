@@ -1,8 +1,9 @@
-from Board import GameBoard, look_ahead
+from Board import GameBoard, look_ahead, convert_to_position
 import numpy as np
 
 
 dict2list = lambda _dict: [x for x in _dict.values()]
+rem_invalid = lambda _list: list(filter(lambda x: x != -np.inf, _list))
 
 
 class Agent:
@@ -43,12 +44,10 @@ class Agent:
             elif len(possible_moves) == 1:
                 board.played_pos.append(possible_moves[0])
                 return possible_moves[0]
+            elif len(possible_moves) == 0:
+                return None
             else:
-                return 0
-
-
-def convert_to_position(pos, rows, cols):
-    return [int(pos / rows), pos % cols]
+                raise Exception("Something horrible has happened")
 
 
 def get_value_of_board(board, current_player):
@@ -99,5 +98,17 @@ def get_value_of_board_recursion(future_boards, current_player, value, recursion
 
 
 def get_best_action(value):
-    #print(value)
-    return [x[0] for x in value.items() if x[1] == max(dict2list(value))]
+    """Parses a dict object and returns a list of all keys with max value.
+
+        # Arguments
+            value: a dict object where keys are (tuple) board positions and values are the associated 'reward'
+                where -np.inf means the space is invalid
+
+        # Returns
+            A list of best positions based on 'reward', returns multiple positions if multiple positions have equal
+            reward. May return an empty list of no valid positions
+        """
+    try:
+        return [x[0] for x in value.items() if x[1] == max(rem_invalid(dict2list(value)))]
+    except ValueError:
+        return []

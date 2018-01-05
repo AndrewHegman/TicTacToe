@@ -38,20 +38,27 @@ class GameBoard:
             return self.board[self.rows-1][0]
 
         # check for tie game
-        #if np.count_nonzero(self.board) == self.rows * self.cols:
-        #    print("Tie game! " + str(np.count_nonzero(self.board)))
-        #    print(self.board)
+        if np.count_nonzero(self.board) == self.rows * self.cols:
+            return -1
 
         return 0
 
     def check_if_valid(self, pos):
-        if pos[0] > self.rows or pos[0] < 0 or  \
-                pos[1] > self.cols or pos[1] < 0:
-            return False
-        if pos in self.played_pos:
-            return False
+        if isinstance(pos, int):
+            pos = convert_to_position(pos, self.rows, self.cols)
+
+        if isinstance(pos, tuple):
+            if pos[0] > self.rows or pos[0] < 0 or \
+                            pos[1] > self.cols or pos[1] < 0:
+                return False
+            if pos in self.played_pos:
+                return False
 
         return self.board[pos[0], pos[1]] == 0
+
+
+def convert_to_position(pos, rows, cols):
+    return [int(pos / rows), pos % cols]
 
 
 def look_ahead(board, player_turn):

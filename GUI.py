@@ -52,6 +52,12 @@ class GUI:
         self.grid_bars = {}
 
         pygame.init()
+        pygame.font.init()
+
+        self.title_font = pygame.font.SysFont(None, 96)
+        self.title_text = None
+        self.set_title_text("Player 0 wins!!")
+        self.clicked = False
 
     def create_board(self):
         self.grid_bars = self.create_grid()
@@ -201,16 +207,25 @@ class GUI:
 
     def play_piece(self):
         if self.current_player.is_human:
-            active_square = self.check_if_mouse_is_hovering()
-            if active_square is not None:
-                pos = (convert_to_position(active_square, self.game_board.rows, self.game_board.cols)[0],
-                       convert_to_position(active_square, self.game_board.rows, self.game_board.cols)[1])
-                self.game_board.board[pos] = self.current_player.number
-                self.game_board.played_pos.append(pos)
+            if self.clicked:
+                self.clicked = False
+                active_square = self.check_if_mouse_is_hovering()
+                if active_square is not None and self.game_board.check_if_valid(active_square):
+                    pos = (convert_to_position(active_square, self.game_board.rows, self.game_board.cols)[0],
+                           convert_to_position(active_square, self.game_board.rows, self.game_board.cols)[1])
+                    self.game_board.board[pos] = self.current_player.number
+                    self.game_board.played_pos.append(pos)
+                    self.current_player = self.players[1] if self.players.index(self.current_player) == 0 \
+                        else self.players[0]
         else:
             requested_pos = self.current_player.move(self.game_board)
+            if requested_pos is None:
+                return
             self.game_board.board[requested_pos[0], requested_pos[1]] = self.current_player.number
-        self.current_player = self.players[1] if self.players.index(self.current_player) == 0 else self.players[0]
+            self.current_player = self.players[1] if self.players.index(self.current_player) == 0 else self.players[0]
+
+    def set_title_text(self, string, color=white, antialiasing=False):
+        self.title_text = self.title_font.render(string, antialiasing, color)
 
     def update(self):
         self.screen.fill(black)
@@ -229,20 +244,21 @@ class GUI:
                                    self.marker_width)
 
         active_square = self.check_if_mouse_is_hovering()
-        if active_square is not None and self.game_board.check_if_valid(convert_to_position(active_square, self.game_board.rows, self.game_board.cols)):
+        if active_square is not None and self.game_board.check_if_valid(active_square):
             if self.current_player.number == 1:
                 pygame.draw.polygon(self.screen, white, self.player_markers[self.current_player.number-1][active_square])
             elif self.current_player.number == 2:
                 pygame.draw.circle(self.screen, white, self.collision_squares[active_square].center, self.o_radius,
                                    self.marker_width)
 
+        self.screen.blit(self.title_text,
+                         (self.screen.get_rect().center[0] - self.title_text.get_width() // 2,
+                          10))
         player_won = self.game_board.check_for_win()
-        if player_won > 0:
-            pygame.display.flip()
-            return True
+
 
         pygame.display.flip()
-        return False
+        #return False
 
 
 
@@ -253,91 +269,21 @@ if __name__ == '__main__':
     game_gui = GUI(1280, 900, 6, 7, board, player1, player2)
     game_gui.create_board()
     while game_gui.game_running:
+        game_gui.set_title_text("Player %d\'s turn" % game_gui.current_player.number)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # this enables clicking the X in the program bar to kill program.
                 game_gui.game_running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and game_gui.current_player.is_human:
-                game_gui.play_piece()
-        if not game_gui.current_player.is_human:
-            game_gui.play_piece()
-            player_won = game_gui.game_board.check_for_win()
-            if player_won > 0:
-                break
-        if game_gui.update():
-            break
+                game_gui.clicked = True
+
+        game_gui.play_piece()
+        player_won = game_gui.game_board.check_for_win()
+        if player_won > 0:
+            game_gui.set_title_text("Player %d wins!!" % player_won)
+            #break
+        elif player_won < 0:
+            game_gui.set_title_text("Tie game!!")
+        game_gui.update()
+
     pygame.quit()
-
-'''
-        # Top left ' (top)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].topleft[0] + self.marker_width, self.collision_squares[grid].topleft[1]),
-                         (self.collision_squares[grid].center[0], self.collision_squares[grid].center[1] - self.marker_width))
-        # Top right '/' (top)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].center[0], self.collision_squares[grid].center[1] - self.marker_width),
-                         (self.collision_squares[grid].topright[0] - self.marker_width, self.collision_squares[grid].topright[1]))
-
-        # Top right cap
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].topright[0] - self.marker_width, self.collision_squares[grid].topright[1]),
-                         (self.collision_squares[grid].topright[0], self.collision_squares[grid].topright[1] + self.marker_width))
-
-        # Top right '/' (bottom)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].topright[0], self.collision_squares[grid].topright[1]+self.marker_width),
-                         (self.collision_squares[grid].center[0] + self.marker_width, self.collision_squares[grid].center[1]))
-
-        # Bottom right ' (top)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].center[0] + self.marker_width, self.collision_squares[grid].center[1]),
-                         (self.collision_squares[grid].bottomright[0], self.collision_squares[grid].bottomright[1] - self.marker_width))
-
-        # Bottom right cap
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].bottomright[0], self.collision_squares[grid].bottomright[1] - self.marker_width),
-                         (self.collision_squares[grid].bottomright[0] - self.marker_width, self.collision_squares[grid].bottomright[1]))
-
-        # Bottom right ' (bottom)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].bottomright[0] - self.marker_width, self.collision_squares[grid].bottomright[1]),
-                         (self.collision_squares[grid].center[0], self.collision_squares[grid].center[1] + self.marker_width))
-
-        # Bottom left '/' (bottom)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].center[0], self.collision_squares[grid].center[1] + self.marker_width),
-                         (self.collision_squares[grid].bottomleft[0] + self.marker_width, self.collision_squares[grid].bottomleft[1]))
-
-        # Bottom left cap
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].bottomleft[0] + self.marker_width, self.collision_squares[grid].bottomleft[1]),
-                         (self.collision_squares[grid].bottomleft[0], self.collision_squares[grid].bottomleft[1] - self.marker_width))
-
-        # Bottom left '/' (top)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].bottomleft[0], self.collision_squares[grid].bottomleft[1] - self.marker_width),
-                         (self.collision_squares[grid].center[0] - self.marker_width, self.collision_squares[grid].center[1]))
-
-        # Top left ' (bottom)
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].center[0] - self.marker_width, self.collision_squares[grid].center[1]),
-                         (self.collision_squares[grid].topleft[0], self.collision_squares[grid].topleft[1] + self.marker_width))
-
-        # Top left cap
-        pygame.draw.line(self.screen,
-                         white,
-                         (self.collision_squares[grid].topleft[0], self.collision_squares[grid].topleft[1] + self.marker_width),
-                         (self.collision_squares[grid].topleft[0] + self.marker_width, self.collision_squares[grid].topleft[1]))
-
-'''
