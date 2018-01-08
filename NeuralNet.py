@@ -3,6 +3,8 @@ from keras.layers import Dense
 from keras.optimizers import SGD
 import numpy as np
 
+testing = False
+
 
 class NeuralNet:
     def __init__(self, layer_params, input_neurons, _input_shape=(9,), _activation='relu'):
@@ -24,18 +26,23 @@ class NeuralNet:
             for j in range(board.cols):
                 val_dict[(i, j)] = val[0][idx]
                 idx += 1
+        for key in val_dict.keys():
+            val_dict[key] = -np.inf if not board.check_if_valid(key) else val_dict[key]
+        #print(val_dict)
         return val_dict
 
-'''
-model = Sequential()
-model.add(Dense(8, input_shape=(2,), activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-sgd = SGD(lr=0.1)
-model.compile(loss='mean_squared_error', optimizer=sgd)
-inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-outputs = np.array([[0], [1], [1], [0]])
 
-model.fit(inputs, outputs, batch_size=1, epochs=1000)
-print(model.predict_proba(inputs))
+if __name__ == '__main__':
+    if not testing:
+        pass
+    if testing:
+        model = Sequential()
+        model.add(Dense(8, input_shape=(2,), activation='relu'))
+        model.add(Dense(1, activation='sigmoid'))
+        sgd = SGD(lr=0.1)
+        model.compile(loss='mean_squared_error', optimizer=sgd)
+        inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+        outputs = np.array([[0], [1], [1], [0]])
 
-'''
+        model.fit(inputs, outputs, batch_size=1, epochs=100)
+        print(model.predict_proba(np.array([[0, 0]]))[0][0])

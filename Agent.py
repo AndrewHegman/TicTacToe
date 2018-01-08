@@ -1,18 +1,23 @@
 from Board import GameBoard, look_ahead, convert_to_position
 import numpy as np
-import NeuralNet as net
+from NeuralNet import NeuralNet
 
 dict2list = lambda _dict: [x for x in _dict.values()]
 rem_invalid = lambda _list: list(filter(lambda x: x != -np.inf, _list))
 
 
 class Agent:
-    def __init__(self, number, is_human, prediction_type=None):
+    def __init__(self, number, is_human, prediction_type=None, depth=3):
         self.number = number
         self.is_human = is_human
+        if not self.is_human and prediction_type is None:
+            raise Exception("'prediction_type' must be specified for non-human players!")
+        if not self.is_human and prediction_type not in ["q_learning", "minimax"]:
+            raise Exception("Invalid parameter for 'prediction_type': %s" % prediction_type)
         self.prediction_type = prediction_type
         if self.prediction_type == "q_learning":
-            self.nn = net.NeuralNet([[81, 'relu'], [81, 'relu'], [9, 'relu']], 81)
+            self.nn = NeuralNet([[81, 'relu'], [81, 'relu'], [9, 'relu']], 81)
+        self.minimax_depth = depth
 
     def move(self, board):
         value = {}
@@ -32,7 +37,7 @@ class Agent:
 
         else:
             if self.prediction_type == "minimax":
-                board_val = get_value_of_board_recursion([[[[board, (0, 0)]]]], self.number, value, 1, 3)
+                board_val = get_value_of_board_recursion([[[[board, (0, 0)]]]], self.number, value, 1, self.minimax_depth)
             elif self.prediction_type == "q_learning":
                 board_val = self.nn.get_value_of_board_q_learning(board)
             else:

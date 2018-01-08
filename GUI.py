@@ -277,7 +277,6 @@ class GUI:
         pygame.display.flip()
 
 
-
 if __name__ == '__main__':
     board = GameBoard()
     player1 = Agent(1, True)
