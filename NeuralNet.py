@@ -17,19 +17,30 @@ class NeuralNet:
             self.model.add(Dense(layer[0], activation=layer[1]))
             self.model.compile(loss='mean_squared_error', optimizer=SGD(lr=0.1))
 
-    def get_value_of_board_q_learning(self, board):
-        val = self.model.predict_proba(np.matrix.flatten(board.board).reshape(1, 9))
-        idx = 0
-        val_dict = {}
+    def get_value_of_board_q_learning(self, next_boards):
+        """Approximates the q-value of every possible move given the current state of the board. It works by computing
+            the q-value of each of the next possible boards that are 1 move away.
+            A more optimal way to do this is to have the neural net return the q value for each action. The problem is
+            that I don't know how to update the weights of the neural net if I don't have a target value for each
+            q-value for each action. (DeepMind did it this way..)
 
-        for i in range(board.rows):
-            for j in range(board.cols):
-                val_dict[(i, j)] = val[0][idx]
-                idx += 1
-        for key in val_dict.keys():
-            val_dict[key] = -np.inf if not board.check_if_valid(key) else val_dict[key]
-        #print(val_dict)
-        return val_dict
+            # Arguments
+                next_boards: a dict of all of the next possible boards that are 1 move away where keys are the action
+
+            # Returns
+                a dictionary that links actions to q-values
+        """
+        q_val = {}
+        for a in next_boards.keys():
+            # Set the (predicted) q-value
+            q_val[a] = self.model.predict_proba(np.matrix.flatten(next_boards[a].board).reshape(1, 9))[0][0]
+
+        return q_val
+
+    def train_network(self, game_memory):
+        # Calculate reward given a current state
+        self.model.fit()
+
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from Board import GameBoard, look_ahead, convert_to_position
+from Board import look_ahead, convert_to_position, get_next_states
 import numpy as np
 from NeuralNet import NeuralNet
 
@@ -16,7 +16,7 @@ class Agent:
             raise Exception("Invalid parameter for 'prediction_type': %s" % prediction_type)
         self.prediction_type = prediction_type
         if self.prediction_type == "q_learning":
-            self.nn = NeuralNet([[81, 'relu'], [81, 'relu'], [9, 'relu']], 81)
+            self.nn = NeuralNet([[81, 'relu'], [81, 'relu'], [1, 'relu']], 81)
         self.minimax_depth = depth
 
     def move(self, board):
@@ -39,7 +39,8 @@ class Agent:
             if self.prediction_type == "minimax":
                 board_val = get_value_of_board_recursion([[[[board, (0, 0)]]]], self.number, value, 1, self.minimax_depth)
             elif self.prediction_type == "q_learning":
-                board_val = self.nn.get_value_of_board_q_learning(board)
+                board_val = self.nn.get_value_of_board_q_learning(get_next_states(board, self.number))
+                print(board_val)
             else:
                 raise Exception("Invalid prediction type %s" % self.prediction_type)
             possible_moves = get_best_action(board_val)

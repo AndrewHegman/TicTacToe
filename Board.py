@@ -70,4 +70,17 @@ def look_ahead(board, player_turn):
             if tmp_board.check_if_valid((c, r)):
                 tmp_board.board[c][r] = player_turn
                 future_boards.append((copy.copy(tmp_board), (c, r)))
+
+    return future_boards
+
+
+def get_next_states(board, player_turn):
+    future_boards = {}
+    tmp_board = copy.copy(board)
+    for c in range(board.cols):
+        for r in range(board.rows):
+            tmp_board.board = copy.copy(board.board)
+            if tmp_board.check_if_valid((c, r)):
+                tmp_board.board[c][r] = player_turn
+                future_boards[(c, r)] = copy.copy(tmp_board)
     return future_boards
