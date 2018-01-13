@@ -2,9 +2,9 @@ from Board import look_ahead, convert_to_position, get_next_states
 import numpy as np
 from NeuralNet import NeuralNet
 
-dict2list = lambda _dict: [x for x in _dict.values()]
-rem_invalid = lambda _list: list(filter(lambda x: x != -np.inf, _list))
 
+rem_invalid = lambda _list: list(filter(lambda x: x != -np.inf, _list))
+dict2list = lambda _dict: [x for x in _dict.values()]
 
 class Agent:
     def __init__(self, number, is_human, prediction_type=None, depth=3):
@@ -16,10 +16,10 @@ class Agent:
             raise Exception("Invalid parameter for 'prediction_type': %s" % prediction_type)
         self.prediction_type = prediction_type
         if self.prediction_type == "q_learning":
-            self.nn = NeuralNet([[81, 'relu'], [81, 'relu'], [1, 'relu']], 81)
+            self.nn = NeuralNet([[81, 'relu'], [162, 'relu'], [162, 'relu'], [81, 'relu'], [1, 'tanh']], 81, False)
         self.minimax_depth = depth
 
-    def move(self, board):
+    def move(self, board, q_values=None):
         value = {}
         for r in range(board.rows):
             for c in range(board.cols):
@@ -40,9 +40,11 @@ class Agent:
                 board_val = get_value_of_board_recursion([[[[board, (0, 0)]]]], self.number, value, 1, self.minimax_depth)
             elif self.prediction_type == "q_learning":
                 board_val = self.nn.get_value_of_board_q_learning(get_next_states(board, self.number))
-                print(board_val)
+                if q_values is not None:
+                    q_values.append(board_val)
             else:
                 raise Exception("Invalid prediction type %s" % self.prediction_type)
+            print(board_val)
             possible_moves = get_best_action(board_val)
             if len(possible_moves) > 1:
                 pos = possible_moves[np.random.choice(len(possible_moves))]
