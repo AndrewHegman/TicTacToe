@@ -1,5 +1,5 @@
 # TicTacToe
 
-The goal of this repo is to create a machine learning algorithm that will learn to play TicTacToe. 
-The plan currently is to use a Genetic Algorithm to learn the weights and paremeters of a Neural Net. 
-The program will be written in python and the Neural Net will be developed with Tensorflow.
+The goal of this repository is to create an algorithm that will learn to play TicTacToe.
+The plan currently is to use deep q-learning and train against an AI that uses minimax.
+The program will be written in python and the neural net will be created with Keras with TensorFlow backend.
