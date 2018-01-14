@@ -10,6 +10,8 @@ class Agent:
     def __init__(self, number, is_human, prediction_type=None, depth=3):
         self.number = number
         self.is_human = is_human
+        self.epsilon = 0.85
+
         if not self.is_human and prediction_type is None:
             raise Exception("'prediction_type' must be specified for non-human players!")
         if not self.is_human and prediction_type not in ["q_learning", "minimax"]:
@@ -44,21 +46,35 @@ class Agent:
                     q_values.append(board_val)
             else:
                 raise Exception("Invalid prediction type %s" % self.prediction_type)
+
             print(board_val)
-            possible_moves = get_best_action(board_val)
-            if len(possible_moves) > 1:
+            #possible_moves = get_best_action(board_val)
+            #if len(possible_moves) > 1:
+            choose_greedy = np.random.choice([1, 0], p=[self.epsilon, 1-self.epsilon])
+
+            # Choose a random action ONLY if the agent is using q_learning and 'choose_greedy' == 0
+            if self.prediction_type == "q_learning" and not choose_greedy:
+                pos = list(board_val.keys())[np.random.randint(0, len(board_val.keys()))]
+                while not board.check_if_valid(pos):
+                    pos = list(board_val.keys())[np.random.randint(0, len(board_val.keys()))]
+                board.played_pos.append(pos)
+
+            # Otherwise, choose best action (greedy). ALWAYS do this in the case of minimax
+            else:
+                possible_moves = get_best_action(board_val)
                 pos = possible_moves[np.random.choice(len(possible_moves))]
                 while not board.check_if_valid(pos):
                     pos = possible_moves[np.random.choice(len(possible_moves))]
                 board.played_pos.append(pos)
-                return pos
-            elif len(possible_moves) == 1:
-                board.played_pos.append(possible_moves[0])
-                return possible_moves[0]
-            elif len(possible_moves) == 0:
-                return None
-            else:
-                raise Exception("Something horrible has happened")
+            return pos
+
+            #elif len(possible_moves) == 1:
+            #    board.played_pos.append(possible_moves[0])
+            #    return possible_moves[0]
+            #elif len(possible_moves) == 0:
+            #    return None
+            #else:
+            #    raise Exception("Something horrible has happened")
 
 
 def get_value_of_board(board, current_player):

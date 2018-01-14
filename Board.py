@@ -53,8 +53,11 @@ class GameBoard:
                 return False
             if pos in self.played_pos:
                 return False
-
-        return self.board[pos[0], pos[1]] == 0
+        try:
+            return self.board[pos[0], pos[1]] == 0
+        except IndexError:
+            print("pos :" + str(pos))
+            exit(0)
 
 
 def convert_to_position(pos, rows, cols):
