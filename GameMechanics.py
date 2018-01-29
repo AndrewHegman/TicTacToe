@@ -1,5 +1,5 @@
 from Agent import Agent
-from Board import GameBoard
+from Board import GameBoard, print_board
 import numpy as np
 from collections import namedtuple
 import copy
@@ -75,7 +75,7 @@ def play_game(players, reward_for_winning=100, reward_for_tie=5, reward_for_losi
     #board.show_board()
     #print("\n")
 
-    boards.append(board.board)
+    #boards.append(board.board)
 
     if rewards[-1] == 0:
         if player_won == learning_player:
@@ -92,6 +92,7 @@ def play_game(players, reward_for_winning=100, reward_for_tie=5, reward_for_losi
     mem.q_values = q_values
     mem.player_won = player_won
     mem.reward = rewards
+
     return mem
 
 
@@ -134,8 +135,8 @@ if __name__ == '__main__':
         if choice == 1:
             pass
         elif choice == 2:
-            player1 = Agent(1, False, "minimax", depth=3)
-            player2 = Agent(2, False, "q_learning")
+            player1 = Agent(1, False, prediction_type="minimax", depth=2)
+            player2 = Agent(2, False, prediction_type="q_learning")
             for i in range(10):
                 mem = []
                 mem = play_episode(player1, player2, 2, mem, 10, True)

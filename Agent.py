@@ -6,11 +6,21 @@ from NeuralNet import NeuralNet
 rem_invalid = lambda _list: list(filter(lambda x: x != -np.inf, _list))
 dict2list = lambda _dict: [x for x in _dict.values()]
 
+
 class Agent:
-    def __init__(self, number, is_human, prediction_type=None, depth=3):
+    def __init__(self, number, is_human, **kwargs):
         self.number = number
         self.is_human = is_human
         self.epsilon = 0.85
+
+        prediction_type = None
+        depth = None
+
+        for key, value in kwargs.items():
+            if key == "prediction_type":
+                prediction_type = value
+            if key == "depth":
+                depth = value
 
         if not self.is_human and prediction_type is None:
             raise Exception("'prediction_type' must be specified for non-human players!")
@@ -47,7 +57,7 @@ class Agent:
             else:
                 raise Exception("Invalid prediction type %s" % self.prediction_type)
 
-            print(board_val)
+            #print(board_val)
             #possible_moves = get_best_action(board_val)
             #if len(possible_moves) > 1:
             choose_greedy = np.random.choice([1, 0], p=[self.epsilon, 1-self.epsilon])

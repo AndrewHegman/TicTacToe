@@ -87,3 +87,14 @@ def get_next_states(board, player_turn):
                 tmp_board.board[c][r] = player_turn
                 future_boards[(c, r)] = copy.copy(tmp_board)
     return future_boards
+
+
+def print_board(board):
+    for r in range(board.shape[0]):
+        if r in [x for x in range(1, board.shape[0])]:
+            print("--+" + "---+" * (board.shape[1] - 2) + "--")
+        for c in range(board.shape[1]):
+            line_end = '\n' if c == board.shape[1]-1 else ''
+            print(board[r][c], end=line_end)
+            if c in [x for x in range(board.shape[1]-1)]:
+                print(" | ", end='')
